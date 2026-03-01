@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!--
+        CT_CONSTRUCTOR_THROW warns about finalizer attacks on partially initialized objects.
+    -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!--
+        Path.getFileName() never returns null for paths produced by Files.list(), but
+        SpotBugs cannot infer this from the API contract alone.
+    -->
+    <Match>
+        <Class name="io.sapient.test.harness.EdgeNodeLoader"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+</FindBugsFilter>

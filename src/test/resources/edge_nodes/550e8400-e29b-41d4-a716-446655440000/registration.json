@@ -1,0 +1,10 @@
+{
+  "nodeDefinition": [{"nodeType": "NODE_TYPE_RADAR"}],
+  "icdVersion": "BSI Flex 335 v2.0",
+  "capabilities": [{"category": "Radar", "type": "MaxRange"}],
+  "statusDefinition": {
+    "statusInterval": {"units": "TIME_UNITS_SECONDS", "value": 5.0}
+  },
+  "modeDefinition": [],
+  "configData": [{"manufacturer": "ACME", "model": "RadarX"}]
+}
