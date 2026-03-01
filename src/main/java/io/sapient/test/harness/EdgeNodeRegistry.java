@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,6 +74,10 @@ public class EdgeNodeRegistry {
 
     public Collection<INode> getNodes() {
         return Collections.unmodifiableCollection(nodes.values());
+    }
+
+    public Optional<INode> getNode(UUID id) {
+        return Optional.ofNullable(nodes.get(id));
     }
 
     public void setOnline(UUID id, boolean online) throws NoSuchElementException {

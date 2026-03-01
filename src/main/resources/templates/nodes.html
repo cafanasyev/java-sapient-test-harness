@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edge Nodes</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+    <style>
+        body { font-family: monospace; padding: 2rem; }
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 0.4rem 1rem; }
+        th { background: #f5f5f5; }
+        .online { color: green; }
+        .offline { color: #c00; }
+    </style>
+</head>
+<body>
+    <h2>Edge Nodes</h2>
+    <table>
+        <thead>
+            <tr><th>Node ID</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody hx-get="/nodes/rows" hx-trigger="load, every 5s" hx-swap="innerHTML">
+            <th:block th:fragment="rows">
+                <tr th:each="node : ${nodes}">
+                    <td th:text="${node.nodeId}"></td>
+                    <td th:class="${node.online ? 'online' : 'offline'}"
+                        th:text="${node.online ? 'Online' : 'Offline'}"></td>
+                    <td>
+                        <button th:attr="hx-put=@{/nodes/{id}/online/{next}(id=${node.nodeId},next=${!node.online})}"
+                                hx-swap="none">Toggle</button>
+                    </td>
+                </tr>
+            </th:block>
+        </tbody>
+    </table>
+</body>
+</html>
