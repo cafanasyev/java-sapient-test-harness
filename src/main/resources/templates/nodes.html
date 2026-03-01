@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edge Nodes</title>
+    <link rel="stylesheet" th:href="@{/nodes.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="page-header">
+        <h2>Edge Nodes</h2>
+        <button class="btn-reload" hx-post="/nodes/reload" hx-swap="none"
+                hx-on::after-request="htmx.trigger('#nodes-body', 'load')">
+            &#8635; Reload nodes
+        </button>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Node ID</th>
+                    <th>Status</th>
+                    <th>Online</th>
+                </tr>
+            </thead>
+            <tbody id="nodes-body" hx-get="/nodes/rows" hx-trigger="load, every 5s" hx-swap="innerHTML">
+                <th:block th:fragment="rows">
+                    <tr th:each="node : ${nodes}">
+                        <td th:text="${node.nodeId}"></td>
+                        <td>
+                            <span th:class="${node.online ? 'badge badge-online' : 'badge badge-offline'}"
+                                  th:text="${node.online ? 'Online' : 'Offline'}"></span>
+                        </td>
+                        <td>
+                            <label class="toggle">
+                                <input type="checkbox"
+                                       th:checked="${node.online}"
+                                       th:attr="hx-put=@{/nodes/{id}/online/{next}(id=${node.nodeId},next=${!node.online})}"
+                                       hx-swap="none"
+                                       hx-on::after-request="htmx.trigger('#nodes-body', 'load')">
+                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                            </label>
+                        </td>
+                    </tr>
+                </th:block>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

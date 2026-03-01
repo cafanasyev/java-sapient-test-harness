@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,10 +40,10 @@ class NodeController {
         registry.reload();
     }
 
-    @PutMapping("/{id}/online")
+    @PutMapping("/{id}/online/{value}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void setOnline(@PathVariable UUID id, @RequestBody boolean online) {
-        registry.setOnline(id, online);
+    void setOnline(@PathVariable UUID id, @PathVariable boolean value) {
+        registry.setOnline(id, value);
     }
 
     @ExceptionHandler(NoSuchElementException.class)

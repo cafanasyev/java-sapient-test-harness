@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.ObjectMapper;
@@ -86,10 +85,7 @@ class NodeControllerTest {
     void setOnline_returns204_whenNodeExists() throws Exception {
         doNothing().when(registry).setOnline(NODE_ID, false);
 
-        mvc.perform(
-                        put("/nodes/{id}/online", NODE_ID)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("false"))
+        mvc.perform(put("/nodes/{id}/online/{value}", NODE_ID, false))
                 .andExpect(status().isNoContent());
     }
 
@@ -103,10 +99,7 @@ class NodeControllerTest {
     void setOnline_returns404_whenNodeNotFound() throws Exception {
         doThrow(new NoSuchElementException()).when(registry).setOnline(NODE_ID, true);
 
-        mvc.perform(
-                        put("/nodes/{id}/online", NODE_ID)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("true"))
+        mvc.perform(put("/nodes/{id}/online/{value}", NODE_ID, true))
                 .andExpect(status().isNotFound());
     }
 }
