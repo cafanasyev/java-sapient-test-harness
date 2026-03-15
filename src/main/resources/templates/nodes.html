@@ -22,6 +22,7 @@
                     <th>Node ID</th>
                     <th>Status</th>
                     <th>Online</th>
+                    <th>Alert</th>
                 </tr>
             </thead>
             <tbody id="nodes-body" hx-get="/nodes/rows" hx-trigger="load, every 5s" hx-swap="innerHTML">
@@ -41,6 +42,14 @@
                                        hx-on::after-request="htmx.trigger('#nodes-body', 'load')">
                                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
                             </label>
+                        </td>
+                        <td>
+                            <button class="btn-alert"
+                                    th:disabled="${!node.hasAlert}"
+                                    th:attr="hx-post=@{/nodes/{id}/alert(id=${node.nodeId})}"
+                                    hx-swap="none">
+                                Send Alert
+                            </button>
                         </td>
                     </tr>
                 </th:block>

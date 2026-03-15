@@ -13,13 +13,13 @@ class NodeViewController {
 
     @GetMapping("/")
     String page(Model model) {
-        model.addAttribute("nodes", registry.getNodes());
+        model.addAttribute("nodes", registry.getNodes().stream().map(n -> (EdgeNode) n).toList());
         return "nodes";
     }
 
     @GetMapping("/nodes/rows")
     String rows(Model model) {
-        model.addAttribute("nodes", registry.getNodes());
+        model.addAttribute("nodes", registry.getNodes().stream().map(n -> (EdgeNode) n).toList());
         return "nodes :: rows";
     }
 }

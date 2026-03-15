@@ -63,8 +63,8 @@ class EdgeNodeRegistryTest {
         UUID id = UUID.randomUUID();
         Registration reg1 = Registration.newBuilder().setIcdVersion("v1").build();
         Registration reg2 = Registration.newBuilder().setIcdVersion("v2").build();
-        StatusReport sr1 = StatusReport.newBuilder().setMode("mode1").build();
-        StatusReport sr2 = StatusReport.newBuilder().setMode("mode2").build();
+        StatusReport sr1 = StatusReport.newBuilder().setMode("mode1").setReportId("sr1").build();
+        StatusReport sr2 = StatusReport.newBuilder().setMode("mode2").setReportId("sr2").build();
         when(loader.load(any()))
                 .thenReturn(List.of(new EdgeNode(id, reg1, sr1, true)))
                 .thenReturn(List.of(new EdgeNode(id, reg2, sr2, true)));

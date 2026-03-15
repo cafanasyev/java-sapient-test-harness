@@ -1,6 +1,7 @@
 package io.sapient.test.harness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -28,6 +30,7 @@ class EdgeNodeLoaderTest {
             "edge_nodes/" + FIXTURE_NODE_ID + "/registration.json";
     private static final String FIXTURE_STATUS_REPORT =
             "edge_nodes/" + FIXTURE_NODE_ID + "/status_report.json";
+    private static final String FIXTURE_ALERT = "edge_nodes/" + FIXTURE_NODE_ID + "/alert.json";
 
     private final EdgeNodeLoader loader = new EdgeNodeLoader();
 
@@ -78,6 +81,26 @@ class EdgeNodeLoaderTest {
         assertEquals(StatusReport.System.SYSTEM_OK, sr.getSystem());
         assertEquals(StatusReport.Info.INFO_NEW, sr.getInfo());
         assertEquals("default", sr.getMode());
+    }
+
+    @Test
+    void load_parsesAlertFromJson_whenPresent() throws IOException, URISyntaxException {
+        EdgeNode node = (EdgeNode) loader.load(resourcesRoot()).getFirst();
+        assertTrue(node.getAlert().isPresent());
+        Alert alert = node.getAlert().get();
+        assertEquals("01JPCXQ3FGHS7KBVNE2M4D5R8W", alert.getAlertId());
+        assertEquals(Alert.AlertType.ALERT_TYPE_WARNING, alert.getAlertType());
+    }
+
+    @Test
+    void load_returnsEmptyAlert_whenAlertJsonAbsent() throws IOException {
+        Path nodeDir =
+                Files.createDirectories(
+                        tempDir.resolve("edge_nodes").resolve(UUID.randomUUID().toString()));
+        copyResource(FIXTURE_REGISTRATION, nodeDir.resolve("registration.json"));
+        copyResource(FIXTURE_STATUS_REPORT, nodeDir.resolve("status_report.json"));
+        EdgeNode node = (EdgeNode) loader.load(tempDir).getFirst();
+        assertFalse(node.getAlert().isPresent());
     }
 
     @Test

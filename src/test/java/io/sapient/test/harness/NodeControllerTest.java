@@ -1,5 +1,7 @@
 package io.sapient.test.harness;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -12,8 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import io.sapient.transmission.INodeDispatcher;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +26,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -29,6 +34,7 @@ import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 class NodeControllerTest {
 
     private EdgeNodeRegistry registry;
+    private INodeDispatcher dispatcher;
     private MockMvc mvc;
 
     private static final UUID NODE_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -36,8 +42,10 @@ class NodeControllerTest {
     @BeforeEach
     void setUp() {
         registry = mock(EdgeNodeRegistry.class);
+        dispatcher = mock(INodeDispatcher.class);
         mvc =
-                MockMvcBuilders.standaloneSetup(new NodeController(registry, new ObjectMapper()))
+                MockMvcBuilders.standaloneSetup(
+                                new NodeController(registry, dispatcher, new ObjectMapper()))
                         .build();
     }
 
@@ -101,5 +109,59 @@ class NodeControllerTest {
 
         mvc.perform(put("/nodes/{id}/online/{value}", NODE_ID, true))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void sendAlert_returns204_whenAlertPresent() throws Exception {
+        Alert alert = Alert.newBuilder().setAlertId("a1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        alert,
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        doNothing().when(dispatcher).publish(eq(alert), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNoContent());
+        verify(dispatcher).publish(eq(alert), eq(NODE_ID), any());
+    }
+
+    @Test
+    void sendAlert_returns404_whenNodeNotFound() throws Exception {
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.empty());
+
+        mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void sendAlert_returns404_whenNoAlertJson() throws Exception {
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+
+        mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void list_reflectsHasAlert() throws Exception {
+        Alert alert = Alert.newBuilder().setAlertId("a1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        alert,
+                        true);
+        when(registry.getNodes()).thenReturn(List.of(node));
+
+        mvc.perform(get("/nodes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].hasAlert").value(true));
     }
 }

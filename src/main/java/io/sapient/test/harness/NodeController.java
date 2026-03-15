@@ -2,11 +2,14 @@ package io.sapient.test.harness;
 
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
+import io.sapient.transmission.INodeDispatcher;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +23,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 
 @RestController
 @RequestMapping("/nodes")
 @RequiredArgsConstructor
 class NodeController {
 
+    private static final Duration PUBLISH_TIMEOUT = Duration.ofSeconds(5);
+
     private final EdgeNodeRegistry registry;
+    private final INodeDispatcher dispatcher;
     private final ObjectMapper objectMapper;
 
     @GetMapping
@@ -46,6 +53,21 @@ class NodeController {
         registry.setOnline(id, value);
     }
 
+    @PostMapping("/{id}/alert")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void sendAlert(@PathVariable UUID id) throws TimeoutException, InterruptedException {
+        EdgeNode node =
+                (EdgeNode)
+                        registry.getNode(id)
+                                .orElseThrow(
+                                        () -> new NoSuchElementException("Node not found: " + id));
+        Alert alert =
+                node.getAlert()
+                        .orElseThrow(
+                                () -> new NoSuchElementException("No alert.json for node: " + id));
+        dispatcher.publish(alert, id, PUBLISH_TIMEOUT);
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     ResponseEntity<Void> handleNotFound() {
         return ResponseEntity.notFound().build();
@@ -55,6 +77,7 @@ class NodeController {
         return new NodeView(
                 node.getNodeId(),
                 node.isOnline(),
+                node.hasAlert(),
                 protoToJson(node.getRegistration()),
                 protoToJson(node.getStatusReport()));
     }
@@ -67,5 +90,10 @@ class NodeController {
         }
     }
 
-    record NodeView(UUID nodeId, boolean online, JsonNode registration, JsonNode statusReport) {}
+    record NodeView(
+            UUID nodeId,
+            boolean online,
+            boolean hasAlert,
+            JsonNode registration,
+            JsonNode statusReport) {}
 }

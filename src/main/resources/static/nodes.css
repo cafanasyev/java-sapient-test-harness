@@ -91,3 +91,20 @@ tr:hover td { background: #fafafa; }
     transition: left 0.2s;
 }
 .toggle input:checked + .toggle-track .toggle-thumb { left: 24px; }
+
+.btn-alert {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #fff;
+    background: #f59e0b;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-alert:hover:not(:disabled) { background: #d97706; }
+.btn-alert:active:not(:disabled) { background: #b45309; }
+.btn-alert:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }

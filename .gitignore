@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 
 edge_nodes/
+!src/test/resources/edge_nodes/
 
 ### STS ###
 .apt_generated
