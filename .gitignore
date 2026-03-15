@@ -6,6 +6,8 @@ target/
 edge_nodes/
 !src/test/resources/edge_nodes/
 
+tls/
+
 ### STS ###
 .apt_generated
 .classpath
