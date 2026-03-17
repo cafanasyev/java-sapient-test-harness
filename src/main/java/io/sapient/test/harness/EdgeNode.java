@@ -64,6 +64,14 @@ class EdgeNode implements INode {
         this.alert.set(alert);
     }
 
+    public boolean hasRegistration() {
+        return registration.get() != null;
+    }
+
+    public boolean hasStatusReport() {
+        return statusReport.get() != null;
+    }
+
     public boolean hasAlert() {
         return alert.get() != null;
     }

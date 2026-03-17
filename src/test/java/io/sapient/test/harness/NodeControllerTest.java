@@ -112,6 +112,46 @@ class NodeControllerTest {
     }
 
     @Test
+    void sendRegistration_returns204_whenRegistrationPresent() throws Exception {
+        Registration registration =
+                Registration.newBuilder().setIcdVersion("BSI Flex 335 v2.0").build();
+        EdgeNode node =
+                new EdgeNode(NODE_ID, registration, StatusReport.getDefaultInstance(), true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        doNothing().when(dispatcher).publish(eq(registration), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNoContent());
+        verify(dispatcher).publish(eq(registration), eq(NODE_ID), any());
+    }
+
+    @Test
+    void sendRegistration_returns404_whenNodeNotFound() throws Exception {
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.empty());
+
+        mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void sendStatusReport_returns204_whenStatusReportPresent() throws Exception {
+        StatusReport statusReport =
+                StatusReport.newBuilder().setMode("default").setReportId("r1").build();
+        EdgeNode node =
+                new EdgeNode(NODE_ID, Registration.getDefaultInstance(), statusReport, true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        doNothing().when(dispatcher).publish(eq(statusReport), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/status-report", NODE_ID)).andExpect(status().isNoContent());
+        verify(dispatcher).publish(eq(statusReport), eq(NODE_ID), any());
+    }
+
+    @Test
+    void sendStatusReport_returns404_whenNodeNotFound() throws Exception {
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.empty());
+
+        mvc.perform(post("/nodes/{id}/status-report", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
     void sendAlert_returns204_whenAlertPresent() throws Exception {
         Alert alert = Alert.newBuilder().setAlertId("a1").build();
         EdgeNode node =

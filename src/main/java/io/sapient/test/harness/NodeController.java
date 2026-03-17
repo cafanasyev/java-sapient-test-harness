@@ -8,6 +8,7 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
 @RestController
 @RequestMapping("/nodes")
@@ -53,6 +56,40 @@ class NodeController {
         registry.setOnline(id, value);
     }
 
+    @PostMapping("/{id}/registration")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void sendRegistration(@PathVariable UUID id) throws TimeoutException, InterruptedException {
+        EdgeNode node =
+                (EdgeNode)
+                        registry.getNode(id)
+                                .orElseThrow(
+                                        () -> new NoSuchElementException("Node not found: " + id));
+        Registration registration =
+                Optional.ofNullable(node.getRegistration())
+                        .orElseThrow(
+                                () ->
+                                        new NoSuchElementException(
+                                                "No registration.json for node: " + id));
+        dispatcher.publish(registration, id, PUBLISH_TIMEOUT);
+    }
+
+    @PostMapping("/{id}/status-report")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void sendStatusReport(@PathVariable UUID id) throws TimeoutException, InterruptedException {
+        EdgeNode node =
+                (EdgeNode)
+                        registry.getNode(id)
+                                .orElseThrow(
+                                        () -> new NoSuchElementException("Node not found: " + id));
+        StatusReport statusReport =
+                Optional.ofNullable(node.getStatusReport())
+                        .orElseThrow(
+                                () ->
+                                        new NoSuchElementException(
+                                                "No status_report.json for node: " + id));
+        dispatcher.publish(statusReport, id, PUBLISH_TIMEOUT);
+    }
+
     @PostMapping("/{id}/alert")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void sendAlert(@PathVariable UUID id) throws TimeoutException, InterruptedException {
@@ -77,6 +114,8 @@ class NodeController {
         return new NodeView(
                 node.getNodeId(),
                 node.isOnline(),
+                node.hasRegistration(),
+                node.hasStatusReport(),
                 node.hasAlert(),
                 protoToJson(node.getRegistration()),
                 protoToJson(node.getStatusReport()));
@@ -93,6 +132,8 @@ class NodeController {
     record NodeView(
             UUID nodeId,
             boolean online,
+            boolean hasRegistration,
+            boolean hasStatusReport,
             boolean hasAlert,
             JsonNode registration,
             JsonNode statusReport) {}

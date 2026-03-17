@@ -22,6 +22,8 @@
                     <th>Node ID</th>
                     <th>Status</th>
                     <th>Online</th>
+                    <th>Registration</th>
+                    <th>Status Report</th>
                     <th>Alert</th>
                 </tr>
             </thead>
@@ -42,6 +44,22 @@
                                        hx-on::after-request="htmx.trigger('#nodes-body', 'load')">
                                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
                             </label>
+                        </td>
+                        <td>
+                            <button class="btn-registration"
+                                    th:disabled="${!node.hasRegistration}"
+                                    th:attr="hx-post=@{/nodes/{id}/registration(id=${node.nodeId})}"
+                                    hx-swap="none">
+                                Send Registration
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn-status-report"
+                                    th:disabled="${!node.hasStatusReport}"
+                                    th:attr="hx-post=@{/nodes/{id}/status-report(id=${node.nodeId})}"
+                                    hx-swap="none">
+                                Send Status Report
+                            </button>
                         </td>
                         <td>
                             <button class="btn-alert"
