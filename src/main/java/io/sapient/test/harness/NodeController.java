@@ -56,6 +56,12 @@ class NodeController {
         registry.setOnline(id, value);
     }
 
+    @PutMapping("/auto-reload-on-manual-send/{value}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void setAutoReloadOnManualSend(@PathVariable boolean value) {
+        registry.setAutoReloadOnManualSend(value);
+    }
+
     @PostMapping("/{id}/registration")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void sendRegistration(@PathVariable UUID id) throws TimeoutException, InterruptedException {
@@ -64,6 +70,9 @@ class NodeController {
                         registry.getNode(id)
                                 .orElseThrow(
                                         () -> new NoSuchElementException("Node not found: " + id));
+        if (registry.isAutoReloadOnManualSend()) {
+            registry.reload();
+        }
         Registration registration =
                 Optional.ofNullable(node.getRegistration())
                         .orElseThrow(
@@ -81,6 +90,9 @@ class NodeController {
                         registry.getNode(id)
                                 .orElseThrow(
                                         () -> new NoSuchElementException("Node not found: " + id));
+        if (registry.isAutoReloadOnManualSend()) {
+            registry.reload();
+        }
         StatusReport statusReport =
                 Optional.ofNullable(node.getStatusReport())
                         .orElseThrow(
@@ -98,6 +110,9 @@ class NodeController {
                         registry.getNode(id)
                                 .orElseThrow(
                                         () -> new NoSuchElementException("Node not found: " + id));
+        if (registry.isAutoReloadOnManualSend()) {
+            registry.reload();
+        }
         Alert alert =
                 node.getAlert()
                         .orElseThrow(

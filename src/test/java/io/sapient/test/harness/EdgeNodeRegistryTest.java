@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -127,6 +128,19 @@ class EdgeNodeRegistryTest {
     void setOnline_throwsNoSuchElement_whenNodeAbsent() {
         assertThrows(
                 NoSuchElementException.class, () -> registry.setOnline(UUID.randomUUID(), true));
+    }
+
+    @Test
+    void isAutoReloadOnManualSend_returnsFalse_byDefault() {
+        assertFalse(registry.isAutoReloadOnManualSend());
+    }
+
+    @Test
+    void setAutoReloadOnManualSend_updatesState() {
+        registry.setAutoReloadOnManualSend(true);
+        assertTrue(registry.isAutoReloadOnManualSend());
+        registry.setAutoReloadOnManualSend(false);
+        assertFalse(registry.isAutoReloadOnManualSend());
     }
 
     private EdgeNode node(UUID id) {

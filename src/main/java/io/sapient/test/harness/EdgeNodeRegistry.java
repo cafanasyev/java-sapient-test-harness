@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ public class EdgeNodeRegistry {
     private String baseDir;
 
     private final ConcurrentMap<UUID, EdgeNode> nodes = new ConcurrentHashMap<>();
+    private final AtomicBoolean autoReloadOnManualSend = new AtomicBoolean(false);
 
     @PostConstruct
     public void init() {
@@ -85,5 +87,13 @@ public class EdgeNodeRegistry {
         EdgeNode node = nodes.get(id);
         if (node == null) throw new NoSuchElementException("Node not found: " + id);
         node.setOnline(online);
+    }
+
+    public boolean isAutoReloadOnManualSend() {
+        return autoReloadOnManualSend.get();
+    }
+
+    public void setAutoReloadOnManualSend(boolean value) {
+        autoReloadOnManualSend.set(value);
     }
 }

@@ -14,6 +14,7 @@ class NodeViewController {
     @GetMapping("/")
     String page(Model model) {
         model.addAttribute("nodes", registry.getNodes().stream().map(n -> (EdgeNode) n).toList());
+        model.addAttribute("autoReloadOnManualSend", registry.isAutoReloadOnManualSend());
         return "nodes";
     }
 

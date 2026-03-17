@@ -9,10 +9,20 @@
 <body>
     <div class="page-header">
         <h2>Edge Nodes</h2>
-        <button class="btn-reload" hx-post="/nodes/reload" hx-swap="none"
-                hx-on::after-request="htmx.trigger('#nodes-body', 'load')">
-            &#8635; Reload nodes
-        </button>
+        <div class="header-controls">
+            <label class="toggle"
+                   title="Reload fixtures from disk before each manual send">
+                <input type="checkbox"
+                       th:checked="${autoReloadOnManualSend}"
+                       onchange="htmx.ajax('PUT', '/nodes/auto-reload-on-manual-send/' + this.checked, {swap: 'none'})">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <span class="auto-reload-label">Auto Reload On Manual Send</span>
+            <button class="btn-reload" hx-post="/nodes/reload" hx-swap="none"
+                    hx-on::after-request="htmx.trigger('#nodes-body', 'load')">
+                &#8635; Reload nodes
+            </button>
+        </div>
     </div>
 
     <div class="card">

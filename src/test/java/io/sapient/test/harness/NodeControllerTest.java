@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -109,6 +110,72 @@ class NodeControllerTest {
 
         mvc.perform(put("/nodes/{id}/online/{value}", NODE_ID, true))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void setAutoReloadOnManualSend_returns204() throws Exception {
+        mvc.perform(put("/nodes/auto-reload-on-manual-send/{value}", true))
+                .andExpect(status().isNoContent());
+        verify(registry).setAutoReloadOnManualSend(true);
+    }
+
+    @Test
+    void sendRegistration_reloadsFixtures_whenAutoReloadEnabled() throws Exception {
+        Registration registration =
+                Registration.newBuilder().setIcdVersion("BSI Flex 335 v2.0").build();
+        EdgeNode node =
+                new EdgeNode(NODE_ID, registration, StatusReport.getDefaultInstance(), true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        when(registry.isAutoReloadOnManualSend()).thenReturn(true);
+        doNothing().when(dispatcher).publish(eq(registration), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNoContent());
+        verify(registry).reload();
+    }
+
+    @Test
+    void sendStatusReport_reloadsFixtures_whenAutoReloadEnabled() throws Exception {
+        StatusReport statusReport =
+                StatusReport.newBuilder().setMode("default").setReportId("r1").build();
+        EdgeNode node =
+                new EdgeNode(NODE_ID, Registration.getDefaultInstance(), statusReport, true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        when(registry.isAutoReloadOnManualSend()).thenReturn(true);
+        doNothing().when(dispatcher).publish(eq(statusReport), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/status-report", NODE_ID)).andExpect(status().isNoContent());
+        verify(registry).reload();
+    }
+
+    @Test
+    void sendAlert_reloadsFixtures_whenAutoReloadEnabled() throws Exception {
+        Alert alert = Alert.newBuilder().setAlertId("a1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        alert,
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        when(registry.isAutoReloadOnManualSend()).thenReturn(true);
+        doNothing().when(dispatcher).publish(eq(alert), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNoContent());
+        verify(registry).reload();
+    }
+
+    @Test
+    void sendRegistration_doesNotReload_whenAutoReloadDisabled() throws Exception {
+        Registration registration =
+                Registration.newBuilder().setIcdVersion("BSI Flex 335 v2.0").build();
+        EdgeNode node =
+                new EdgeNode(NODE_ID, registration, StatusReport.getDefaultInstance(), true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        doNothing().when(dispatcher).publish(eq(registration), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNoContent());
+        verify(registry, never()).reload();
     }
 
     @Test
