@@ -57,7 +57,7 @@ public class EdgeNodeLoader {
         StatusReport statusReport = parseStatusReport(nodeDir.resolve("status_report.json"));
         Path alertFile = nodeDir.resolve("alert.json");
         Alert alert = Files.exists(alertFile) ? parseAlert(alertFile) : null;
-        return new EdgeNode(nodeId, registration, statusReport, alert, true);
+        return new EdgeNode(nodeId, registration, statusReport, alert, false);
     }
 
     private Registration parseRegistration(Path file) throws IOException {

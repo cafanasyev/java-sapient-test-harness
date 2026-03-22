@@ -67,11 +67,12 @@ class EdgeNodeRegistryTest {
         StatusReport sr1 = StatusReport.newBuilder().setMode("mode1").setReportId("sr1").build();
         StatusReport sr2 = StatusReport.newBuilder().setMode("mode2").setReportId("sr2").build();
         when(loader.load(any()))
-                .thenReturn(List.of(new EdgeNode(id, reg1, sr1, true)))
-                .thenReturn(List.of(new EdgeNode(id, reg2, sr2, true)));
+                .thenReturn(List.of(new EdgeNode(id, reg1, sr1, false)))
+                .thenReturn(List.of(new EdgeNode(id, reg2, sr2, false)));
 
         registry.reload();
         INode original = registry.getNodes().iterator().next();
+        registry.setOnline(id, true);
 
         registry.reload();
         INode updated = registry.getNodes().iterator().next();
@@ -79,6 +80,7 @@ class EdgeNodeRegistryTest {
         assertSame(original, updated);
         assertEquals(reg2, updated.getRegistration());
         assertEquals(sr2, updated.getStatusReport());
+        assertTrue(updated.isOnline());
         verify(dispatcher).register(any());
         verify(dispatcher, never()).unregister(any());
     }
@@ -113,15 +115,36 @@ class EdgeNodeRegistryTest {
     }
 
     @Test
+    void newNodes_areLoadedAsOffline() throws IOException {
+        EdgeNode node = node(UUID.randomUUID());
+        when(loader.load(any())).thenReturn(List.of(node));
+        registry.reload();
+        assertFalse(registry.getNodes().iterator().next().isOnline());
+    }
+
+    @Test
+    void reload_doesNotChangeOnlineState_ofExistingNode() throws IOException {
+        UUID id = UUID.randomUUID();
+        EdgeNode node = node(id);
+        when(loader.load(any())).thenReturn(List.of(node));
+        registry.reload();
+        registry.setOnline(id, true);
+
+        registry.reload();
+
+        assertTrue(registry.getNode(id).orElseThrow().isOnline());
+    }
+
+    @Test
     void setOnline_updatesNode() throws IOException {
         UUID id = UUID.randomUUID();
         EdgeNode node = node(id);
         when(loader.load(any())).thenReturn(List.of(node));
         registry.reload();
 
-        registry.setOnline(id, false);
+        registry.setOnline(id, true);
 
-        assertFalse(node.isOnline());
+        assertTrue(node.isOnline());
     }
 
     @Test
@@ -145,6 +168,6 @@ class EdgeNodeRegistryTest {
 
     private EdgeNode node(UUID id) {
         return new EdgeNode(
-                id, Registration.getDefaultInstance(), StatusReport.getDefaultInstance(), true);
+                id, Registration.getDefaultInstance(), StatusReport.getDefaultInstance(), false);
     }
 }

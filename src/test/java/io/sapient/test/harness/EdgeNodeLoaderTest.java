@@ -69,6 +69,12 @@ class EdgeNodeLoaderTest {
     }
 
     @Test
+    void load_returnsNodesAsOffline() throws IOException, URISyntaxException {
+        EdgeNode node = (EdgeNode) loader.load(resourcesRoot()).getFirst();
+        assertFalse(node.isOnline());
+    }
+
+    @Test
     void load_parsesRegistrationFromJson() throws IOException, URISyntaxException {
         Registration reg = loader.load(resourcesRoot()).getFirst().getRegistration();
         assertEquals("BSI Flex 335 v2.0", reg.getIcdVersion());
