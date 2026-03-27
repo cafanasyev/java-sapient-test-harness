@@ -18,6 +18,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.Location;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.LocationCoordinateSystem;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -31,6 +34,8 @@ class EdgeNodeLoaderTest {
     private static final String FIXTURE_STATUS_REPORT =
             "edge_nodes/" + FIXTURE_NODE_ID + "/status_report.json";
     private static final String FIXTURE_ALERT = "edge_nodes/" + FIXTURE_NODE_ID + "/alert.json";
+    private static final String FIXTURE_DETECTION_REPORT =
+            "edge_nodes/" + FIXTURE_NODE_ID + "/detection_report.json";
 
     private final EdgeNodeLoader loader = new EdgeNodeLoader();
 
@@ -96,6 +101,51 @@ class EdgeNodeLoaderTest {
         Alert alert = node.getAlert().get();
         assertEquals("01JPCXQ3FGHS7KBVNE2M4D5R8W", alert.getAlertId());
         assertEquals(Alert.AlertType.ALERT_TYPE_WARNING, alert.getAlertType());
+    }
+
+    @Test
+    void load_parsesDetectionReportFromJson_whenPresent() throws IOException, URISyntaxException {
+        EdgeNode node = (EdgeNode) loader.load(resourcesRoot()).getFirst();
+        assertTrue(node.getDetectionReport().isPresent());
+        DetectionReport dr = node.getDetectionReport().get();
+        assertEquals("01JPCXQ3FGHS7KBVNE2M4D5R8X", dr.getReportId());
+        assertEquals("test-object-01", dr.getObjectId());
+        assertEquals("task-42", dr.getTaskId());
+        assertEquals("moving", dr.getState());
+        assertEquals(0.92f, dr.getDetectionConfidence(), 0.001f);
+
+        Location loc = dr.getLocation();
+        assertEquals(33.688839, loc.getX(), 0.000001);
+        assertEquals(46.888777, loc.getY(), 0.000001);
+        assertEquals(4.0, loc.getZ(), 0.001);
+        assertEquals(
+                LocationCoordinateSystem.LOCATION_COORDINATE_SYSTEM_LAT_LNG_DEG_M,
+                loc.getCoordinateSystem());
+
+        assertEquals(1, dr.getClassificationCount());
+        assertEquals("Drone", dr.getClassification(0).getType());
+        assertEquals(0.85f, dr.getClassification(0).getConfidence(), 0.001f);
+
+        assertEquals(1, dr.getBehaviourCount());
+        assertEquals("Hovering", dr.getBehaviour(0).getType());
+        assertEquals(0.75f, dr.getBehaviour(0).getConfidence(), 0.001f);
+
+        assertEquals(1, dr.getSignalCount());
+        assertEquals(12.5f, dr.getSignal(0).getAmplitude(), 0.001f);
+        assertEquals(2450.0f, dr.getSignal(0).getCentreFrequency(), 0.1f);
+        assertEquals(2400.0f, dr.getSignal(0).getStartFrequency(), 0.1f);
+        assertEquals(2500.0f, dr.getSignal(0).getStopFrequency(), 0.1f);
+    }
+
+    @Test
+    void load_returnsEmptyDetectionReport_whenDetectionReportJsonAbsent() throws IOException {
+        Path nodeDir =
+                Files.createDirectories(
+                        tempDir.resolve("edge_nodes").resolve(UUID.randomUUID().toString()));
+        copyResource(FIXTURE_REGISTRATION, nodeDir.resolve("registration.json"));
+        copyResource(FIXTURE_STATUS_REPORT, nodeDir.resolve("status_report.json"));
+        EdgeNode node = (EdgeNode) loader.load(tempDir).getFirst();
+        assertFalse(node.getDetectionReport().isPresent());
     }
 
     @Test

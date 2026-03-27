@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -98,6 +99,39 @@ class EdgeNodeRegistryTest {
 
         assertEquals(1, registry.getNodes().size());
         verify(dispatcher).unregister(node2);
+    }
+
+    @Test
+    void reload_updatesDetectionReport_ofExistingNode() throws IOException {
+        UUID id = UUID.randomUUID();
+        DetectionReport dr1 =
+                DetectionReport.newBuilder().setReportId("r1").setObjectId("obj-1").build();
+        DetectionReport dr2 =
+                DetectionReport.newBuilder().setReportId("r2").setObjectId("obj-2").build();
+        EdgeNode first =
+                new EdgeNode(
+                        id,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        null,
+                        dr1,
+                        false);
+        EdgeNode second =
+                new EdgeNode(
+                        id,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        null,
+                        dr2,
+                        false);
+        when(loader.load(any())).thenReturn(List.of(first)).thenReturn(List.of(second));
+
+        registry.reload();
+        INode existing = registry.getNodes().iterator().next();
+        registry.reload();
+
+        assertSame(existing, registry.getNodes().iterator().next());
+        assertEquals(dr2, ((EdgeNode) existing).getDetectionReport().orElseThrow());
     }
 
     @Test

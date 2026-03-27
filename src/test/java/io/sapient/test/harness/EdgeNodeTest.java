@@ -11,6 +11,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.AlertAck;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.RegistrationAck;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
@@ -119,6 +120,42 @@ class EdgeNodeTest {
         node.setAlert(null);
         assertTrue(node.getAlert().isEmpty());
         assertFalse(node.hasAlert());
+    }
+
+    @Test
+    void getDetectionReport_returnsEmpty_whenNotSet() {
+        assertTrue(node.getDetectionReport().isEmpty());
+    }
+
+    @Test
+    void hasDetectionReport_returnsFalse_whenNotSet() {
+        assertFalse(node.hasDetectionReport());
+    }
+
+    @Test
+    void setDetectionReport_updatesReturnedValue() {
+        DetectionReport dr =
+                DetectionReport.newBuilder().setReportId("r1").setObjectId("obj-1").build();
+        node.setDetectionReport(dr);
+        assertEquals(dr, node.getDetectionReport().orElseThrow());
+        assertTrue(node.hasDetectionReport());
+    }
+
+    @Test
+    void getDetectionReport_populatesUlidReportId_whenAbsent() {
+        node.setDetectionReport(DetectionReport.newBuilder().setObjectId("obj-1").build());
+        DetectionReport dr = node.getDetectionReport().orElseThrow();
+        assertTrue(dr.hasReportId());
+        assertEquals(26, dr.getReportId().length());
+        assertEquals(dr.getReportId(), node.getDetectionReport().orElseThrow().getReportId());
+    }
+
+    @Test
+    void setDetectionReport_null_clearsDetectionReport() {
+        node.setDetectionReport(DetectionReport.newBuilder().setObjectId("obj-1").build());
+        node.setDetectionReport(null);
+        assertTrue(node.getDetectionReport().isEmpty());
+        assertFalse(node.hasDetectionReport());
     }
 
     @Test

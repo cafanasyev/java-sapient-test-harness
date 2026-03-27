@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -253,6 +254,105 @@ class NodeControllerTest {
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
 
         mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void sendDetectionReport_returns204_whenDetectionReportPresent() throws Exception {
+        DetectionReport dr =
+                DetectionReport.newBuilder().setReportId("dr-1").setObjectId("obj-1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        null,
+                        dr,
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        doNothing().when(dispatcher).publish(eq(dr), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/detection-report", NODE_ID))
+                .andExpect(status().isNoContent());
+        verify(dispatcher).publish(eq(dr), eq(NODE_ID), any());
+    }
+
+    @Test
+    void sendDetectionReport_returns404_whenNodeNotFound() throws Exception {
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.empty());
+
+        mvc.perform(post("/nodes/{id}/detection-report", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void sendDetectionReport_returns404_whenNoDetectionReportJson() throws Exception {
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+
+        mvc.perform(post("/nodes/{id}/detection-report", NODE_ID)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void sendDetectionReport_reloadsFixtures_whenAutoReloadEnabled() throws Exception {
+        DetectionReport dr =
+                DetectionReport.newBuilder().setReportId("dr-1").setObjectId("obj-1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        null,
+                        dr,
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        when(registry.isAutoReloadOnManualSend()).thenReturn(true);
+        doNothing().when(dispatcher).publish(eq(dr), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/detection-report", NODE_ID))
+                .andExpect(status().isNoContent());
+        verify(registry).reload();
+    }
+
+    @Test
+    void sendDetectionReport_doesNotReload_whenAutoReloadDisabled() throws Exception {
+        DetectionReport dr =
+                DetectionReport.newBuilder().setReportId("dr-1").setObjectId("obj-1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        null,
+                        dr,
+                        true);
+        when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
+        doNothing().when(dispatcher).publish(eq(dr), eq(NODE_ID), any());
+
+        mvc.perform(post("/nodes/{id}/detection-report", NODE_ID))
+                .andExpect(status().isNoContent());
+        verify(registry, never()).reload();
+    }
+
+    @Test
+    void list_reflectsHasDetectionReport() throws Exception {
+        DetectionReport dr = DetectionReport.newBuilder().setObjectId("obj-1").build();
+        EdgeNode node =
+                new EdgeNode(
+                        NODE_ID,
+                        Registration.getDefaultInstance(),
+                        StatusReport.getDefaultInstance(),
+                        null,
+                        dr,
+                        true);
+        when(registry.getNodes()).thenReturn(List.of(node));
+
+        mvc.perform(get("/nodes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].hasDetectionReport").value(true));
     }
 
     @Test

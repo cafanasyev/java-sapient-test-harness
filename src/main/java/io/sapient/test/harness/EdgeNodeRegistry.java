@@ -55,6 +55,8 @@ public class EdgeNodeRegistry {
                                     existing.setRegistration(replacement.getRegistration());
                                     existing.setStatusReport(replacement.getStatusReport());
                                     existing.setAlert(replacement.getAlert().orElse(null));
+                                    existing.setDetectionReport(
+                                            replacement.getDetectionReport().orElse(null));
                                     return existing;
                                 });
                 if (result == fresh) {

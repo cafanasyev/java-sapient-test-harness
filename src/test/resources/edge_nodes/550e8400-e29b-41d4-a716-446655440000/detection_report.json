@@ -1,0 +1,33 @@
+{
+  "reportId": "01JPCXQ3FGHS7KBVNE2M4D5R8X",
+  "objectId": "test-object-01",
+  "taskId": "task-42",
+  "state": "moving",
+  "detectionConfidence": 0.92,
+  "location": {
+    "x": 33.688839,
+    "y": 46.888777,
+    "z": 4.0,
+    "coordinateSystem": "LOCATION_COORDINATE_SYSTEM_LAT_LNG_DEG_M"
+  },
+  "classification": [
+    {
+      "type": "Drone",
+      "confidence": 0.85
+    }
+  ],
+  "behaviour": [
+    {
+      "type": "Hovering",
+      "confidence": 0.75
+    }
+  ],
+  "signal": [
+    {
+      "amplitude": 12.5,
+      "centreFrequency": 2450.0,
+      "startFrequency": 2400.0,
+      "stopFrequency": 2500.0
+    }
+  ]
+}

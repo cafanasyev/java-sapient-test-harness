@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -57,7 +58,12 @@ public class EdgeNodeLoader {
         StatusReport statusReport = parseStatusReport(nodeDir.resolve("status_report.json"));
         Path alertFile = nodeDir.resolve("alert.json");
         Alert alert = Files.exists(alertFile) ? parseAlert(alertFile) : null;
-        return new EdgeNode(nodeId, registration, statusReport, alert, false);
+        Path detectionReportFile = nodeDir.resolve("detection_report.json");
+        DetectionReport detectionReport =
+                Files.exists(detectionReportFile)
+                        ? parseDetectionReport(detectionReportFile)
+                        : null;
+        return new EdgeNode(nodeId, registration, statusReport, alert, detectionReport, false);
     }
 
     private Registration parseRegistration(Path file) throws IOException {
@@ -74,6 +80,12 @@ public class EdgeNodeLoader {
 
     private Alert parseAlert(Path file) throws IOException {
         Alert.Builder builder = Alert.newBuilder();
+        JsonFormat.parser().merge(Files.readString(file), builder);
+        return builder.build();
+    }
+
+    private DetectionReport parseDetectionReport(Path file) throws IOException {
+        DetectionReport.Builder builder = DetectionReport.newBuilder();
         JsonFormat.parser().merge(Files.readString(file), builder);
         return builder.build();
     }

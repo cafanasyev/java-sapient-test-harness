@@ -35,6 +35,7 @@
                     <th>Registration</th>
                     <th>Status Report</th>
                     <th>Alert</th>
+                    <th>Detection</th>
                 </tr>
             </thead>
             <tbody id="nodes-body" hx-get="/nodes/rows" hx-trigger="load, every 5s" hx-swap="innerHTML">
@@ -77,6 +78,14 @@
                                     th:attr="hx-post=@{/nodes/{id}/alert(id=${node.nodeId})}"
                                     hx-swap="none">
                                 Send Alert
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn-detection"
+                                    th:disabled="${!node.hasDetectionReport}"
+                                    th:attr="hx-post=@{/nodes/{id}/detection-report(id=${node.nodeId})}"
+                                    hx-swap="none">
+                                Send Detection
                             </button>
                         </td>
                     </tr>

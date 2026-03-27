@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.Getter;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.AlertAck;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.RegistrationAck;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
@@ -21,10 +22,11 @@ class EdgeNode implements INode {
     private final AtomicReference<Registration> registration;
     private final AtomicReference<StatusReport> statusReport;
     private final AtomicReference<Alert> alert;
+    private final AtomicReference<DetectionReport> detectionReport;
     private final AtomicBoolean online;
 
     EdgeNode(UUID nodeId, Registration registration, StatusReport statusReport, boolean online) {
-        this(nodeId, registration, statusReport, null, online);
+        this(nodeId, registration, statusReport, null, null, online);
     }
 
     EdgeNode(
@@ -33,10 +35,21 @@ class EdgeNode implements INode {
             StatusReport statusReport,
             Alert alert,
             boolean online) {
+        this(nodeId, registration, statusReport, alert, null, online);
+    }
+
+    EdgeNode(
+            UUID nodeId,
+            Registration registration,
+            StatusReport statusReport,
+            Alert alert,
+            DetectionReport detectionReport,
+            boolean online) {
         this.nodeId = nodeId;
         this.registration = new AtomicReference<>(registration);
         this.statusReport = new AtomicReference<>(statusReport);
         this.alert = new AtomicReference<>(alert);
+        this.detectionReport = new AtomicReference<>(detectionReport);
         this.online = new AtomicBoolean(online);
     }
 
@@ -64,6 +77,14 @@ class EdgeNode implements INode {
         this.alert.set(alert);
     }
 
+    public Optional<DetectionReport> getDetectionReport() {
+        return Optional.ofNullable(detectionReport.updateAndGet(EdgeNode::withDetectionReportId));
+    }
+
+    void setDetectionReport(DetectionReport detectionReport) {
+        this.detectionReport.set(detectionReport);
+    }
+
     public boolean hasRegistration() {
         return registration.get() != null;
     }
@@ -74,6 +95,10 @@ class EdgeNode implements INode {
 
     public boolean hasAlert() {
         return alert.get() != null;
+    }
+
+    public boolean hasDetectionReport() {
+        return detectionReport.get() != null;
     }
 
     public boolean isOnline() {
@@ -101,5 +126,10 @@ class EdgeNode implements INode {
     private static Alert withAlertId(Alert a) {
         if (a == null || a.hasAlertId()) return a;
         return a.toBuilder().setAlertId(UlidCreator.getMonotonicUlid().toString()).build();
+    }
+
+    private static DetectionReport withDetectionReportId(DetectionReport dr) {
+        if (dr == null || dr.hasReportId()) return dr;
+        return dr.toBuilder().setReportId(UlidCreator.getMonotonicUlid().toString()).build();
     }
 }

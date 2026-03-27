@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 
@@ -120,6 +121,26 @@ class NodeController {
         dispatcher.publish(alert, id, PUBLISH_TIMEOUT);
     }
 
+    @PostMapping("/{id}/detection-report")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void sendDetectionReport(@PathVariable UUID id) throws TimeoutException, InterruptedException {
+        EdgeNode node =
+                (EdgeNode)
+                        registry.getNode(id)
+                                .orElseThrow(
+                                        () -> new NoSuchElementException("Node not found: " + id));
+        if (registry.isAutoReloadOnManualSend()) {
+            registry.reload();
+        }
+        DetectionReport detectionReport =
+                node.getDetectionReport()
+                        .orElseThrow(
+                                () ->
+                                        new NoSuchElementException(
+                                                "No detection_report.json for node: " + id));
+        dispatcher.publish(detectionReport, id, PUBLISH_TIMEOUT);
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     ResponseEntity<Void> handleNotFound() {
         return ResponseEntity.notFound().build();
@@ -132,6 +153,7 @@ class NodeController {
                 node.hasRegistration(),
                 node.hasStatusReport(),
                 node.hasAlert(),
+                node.hasDetectionReport(),
                 protoToJson(node.getRegistration()),
                 protoToJson(node.getStatusReport()));
     }
@@ -150,6 +172,7 @@ class NodeController {
             boolean hasRegistration,
             boolean hasStatusReport,
             boolean hasAlert,
+            boolean hasDetectionReport,
             JsonNode registration,
             JsonNode statusReport) {}
 }
