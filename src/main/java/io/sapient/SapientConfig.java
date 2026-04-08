@@ -40,9 +40,6 @@ class SapientConfig {
     @Value("${fusion-node.tls.client-key}")
     private String clientKeyPath;
 
-    @Value("${fusion-node.tls.key-algorithm}")
-    private String keyAlgorithm;
-
     @Bean
     INodeDispatcher nodeDispatcher() throws Exception {
         SocketProvider provider;
@@ -50,16 +47,13 @@ class SapientConfig {
             byte[] caCert = Files.readAllBytes(Paths.get(caCertPath));
             byte[] clientCert = Files.readAllBytes(Paths.get(clientCertPath));
             byte[] clientKey = Files.readAllBytes(Paths.get(clientKeyPath));
-            SSLContext sslContext =
-                    new SslContextFactory().create(clientKey, keyAlgorithm, clientCert, caCert);
+            SSLContext sslContext = new SslContextFactory().create(clientKey, clientCert, caCert);
             provider = () -> sslContext.getSocketFactory().createSocket(host, port);
         } else {
             provider = () -> new Socket(host, port);
         }
         IClient client = new SocketClient(provider);
         NodeDispatcherConfig config = NodeDispatcherConfig.defaults(UUID.fromString(fusionNodeId));
-        NodeDispatcher dispatcher = new NodeDispatcher(client, config);
-        Thread.ofVirtual().name("node-dispatcher").start(dispatcher);
-        return dispatcher;
+        return new NodeDispatcher(client, config);
     }
 }
