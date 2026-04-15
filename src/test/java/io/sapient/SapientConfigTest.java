@@ -30,13 +30,13 @@ class SapientConfigTest {
     }
 
     @Test
-    void nodeDispatcher_returnsNodeDispatcher() throws Exception {
+    void nodeDispatcher_returnsNodeDispatcher() {
         dispatcher = createDispatcher(UUID.randomUUID());
         assertInstanceOf(NodeDispatcher.class, dispatcher);
     }
 
     @Test
-    void nodeDispatcher_configuresCorrectDestinationId() throws Exception {
+    void nodeDispatcher_configuresCorrectDestinationId() {
         UUID fusionNodeId = UUID.randomUUID();
         dispatcher = createDispatcher(fusionNodeId);
         NodeDispatcherConfig config =
@@ -55,11 +55,11 @@ class SapientConfigTest {
         verify(dispatcher).close();
     }
 
-    private INodeDispatcher createDispatcher(UUID fusionNodeId) throws Exception {
+    private INodeDispatcher createDispatcher(UUID fusionNodeId) {
         SapientConfig config = new SapientConfig();
         ReflectionTestUtils.setField(config, "host", "localhost");
         ReflectionTestUtils.setField(config, "port", 9999);
         ReflectionTestUtils.setField(config, "fusionNodeId", fusionNodeId.toString());
-        return config.nodeDispatcher();
+        return config.nodeDispatcher(config.socketClient(config.plainSocketProvider()));
     }
 }
