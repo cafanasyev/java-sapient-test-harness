@@ -128,8 +128,6 @@ class NodeControllerTest {
                 new EdgeNode(NODE_ID, registration, StatusReport.getDefaultInstance(), true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
         when(registry.isAutoReloadOnManualSend()).thenReturn(true);
-        doNothing().when(dispatcher).publish(eq(registration), eq(NODE_ID), any());
-
         mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNoContent());
         verify(registry).reload();
     }
@@ -142,8 +140,6 @@ class NodeControllerTest {
                 new EdgeNode(NODE_ID, Registration.getDefaultInstance(), statusReport, true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
         when(registry.isAutoReloadOnManualSend()).thenReturn(true);
-        doNothing().when(dispatcher).publish(eq(statusReport), eq(NODE_ID), any());
-
         mvc.perform(post("/nodes/{id}/status-report", NODE_ID)).andExpect(status().isNoContent());
         verify(registry).reload();
     }
@@ -160,8 +156,6 @@ class NodeControllerTest {
                         true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
         when(registry.isAutoReloadOnManualSend()).thenReturn(true);
-        doNothing().when(dispatcher).publish(eq(alert), eq(NODE_ID), any());
-
         mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNoContent());
         verify(registry).reload();
     }
@@ -173,7 +167,6 @@ class NodeControllerTest {
         EdgeNode node =
                 new EdgeNode(NODE_ID, registration, StatusReport.getDefaultInstance(), true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
-        doNothing().when(dispatcher).publish(eq(registration), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNoContent());
         verify(registry, never()).reload();
@@ -186,7 +179,6 @@ class NodeControllerTest {
         EdgeNode node =
                 new EdgeNode(NODE_ID, registration, StatusReport.getDefaultInstance(), true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
-        doNothing().when(dispatcher).publish(eq(registration), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/registration", NODE_ID)).andExpect(status().isNoContent());
         verify(dispatcher).publish(eq(registration), eq(NODE_ID), any());
@@ -206,7 +198,6 @@ class NodeControllerTest {
         EdgeNode node =
                 new EdgeNode(NODE_ID, Registration.getDefaultInstance(), statusReport, true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
-        doNothing().when(dispatcher).publish(eq(statusReport), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/status-report", NODE_ID)).andExpect(status().isNoContent());
         verify(dispatcher).publish(eq(statusReport), eq(NODE_ID), any());
@@ -230,7 +221,6 @@ class NodeControllerTest {
                         alert,
                         true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
-        doNothing().when(dispatcher).publish(eq(alert), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/alert", NODE_ID)).andExpect(status().isNoContent());
         verify(dispatcher).publish(eq(alert), eq(NODE_ID), any());
@@ -269,7 +259,6 @@ class NodeControllerTest {
                         dr,
                         true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
-        doNothing().when(dispatcher).publish(eq(dr), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/detection-report", NODE_ID))
                 .andExpect(status().isNoContent());
@@ -310,7 +299,6 @@ class NodeControllerTest {
                         true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
         when(registry.isAutoReloadOnManualSend()).thenReturn(true);
-        doNothing().when(dispatcher).publish(eq(dr), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/detection-report", NODE_ID))
                 .andExpect(status().isNoContent());
@@ -330,7 +318,6 @@ class NodeControllerTest {
                         dr,
                         true);
         when(registry.getNode(NODE_ID)).thenReturn(Optional.of(node));
-        doNothing().when(dispatcher).publish(eq(dr), eq(NODE_ID), any());
 
         mvc.perform(post("/nodes/{id}/detection-report", NODE_ID))
                 .andExpect(status().isNoContent());
