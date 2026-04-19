@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import io.sapient.transmission.INodeDispatcher;
 import io.sapient.transmission.NodeDispatcher;
 import io.sapient.transmission.NodeDispatcherConfig;
+import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,9 @@ class SapientConfigTest {
         ReflectionTestUtils.setField(config, "host", "localhost");
         ReflectionTestUtils.setField(config, "port", 9999);
         ReflectionTestUtils.setField(config, "fusionNodeId", fusionNodeId.toString());
+        ReflectionTestUtils.setField(config, "socketWatchdogInterval", Duration.ofSeconds(30));
+        ReflectionTestUtils.setField(config, "socketProbeTimeout", Duration.ofSeconds(2));
+        ReflectionTestUtils.setField(config, "socketInitialReconnectDelay", Duration.ofSeconds(1));
         return config.nodeDispatcher(config.socketClient(config.plainSocketProvider()));
     }
 }

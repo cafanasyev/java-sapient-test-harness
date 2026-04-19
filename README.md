@@ -6,7 +6,7 @@ Spring Boot test harness for [java-sapient-sdk](https://github.com/cafanasyev/ja
 
 - Java 21+
 - No local Maven installation required (Maven Wrapper included)
-- `java-sapient-sdk:0.2.0` must be installed in the local Maven repository (`~/.m2`) before building
+- `java-sapient-sdk:0.2.1` must be installed in the local Maven repository (`~/.m2`) before building
 
 ## Build
 
