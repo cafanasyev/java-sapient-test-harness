@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.UUID;
 import javax.net.ssl.SSLContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +39,15 @@ class SapientConfig {
 
     @Value("${fusion-node.tls.client-key}")
     private String clientKeyPath;
+
+    @Value("${fusion-node.socket.watchdog-interval}")
+    private Duration socketWatchdogInterval;
+
+    @Value("${fusion-node.socket.probe-timeout}")
+    private Duration socketProbeTimeout;
+
+    @Value("${fusion-node.socket.initial-reconnect-delay:1s}")
+    private Duration socketInitialReconnectDelay;
 
     @Bean
     @ConditionalOnProperty(name = "fusion-node.tls.enabled", havingValue = "true")
@@ -90,12 +100,19 @@ class SapientConfig {
 
     @Bean
     IClient socketClient(SocketProvider socketProvider) {
-        return new SocketClient(socketProvider);
+        return new SocketClient(
+                socketProvider,
+                socketProbeTimeout,
+                socketInitialReconnectDelay,
+                socketWatchdogInterval);
     }
 
     @Bean
     INodeDispatcher nodeDispatcher(IClient client) {
-        NodeDispatcherConfig config = NodeDispatcherConfig.defaults(UUID.fromString(fusionNodeId));
+        UUID fusionNodeId = UUID.fromString(this.fusionNodeId);
+        NodeDispatcherConfig config = NodeDispatcherConfig.defaults(fusionNodeId);
+        Duration connectionLossDetection = socketWatchdogInterval.plus(socketProbeTimeout);
+        config = config.withConnectionLossDetectionDelay(connectionLossDetection);
         return new NodeDispatcher(client, config);
     }
 }
