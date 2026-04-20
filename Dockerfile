@@ -5,8 +5,7 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
 FROM eclipse-temurin:21-jre-noble
 COPY --from=builder /builder/extracted/dependencies/ /app/
-COPY --from=builder /builder/extracted/spring-boot-loader/ /app/
 COPY --from=builder /builder/extracted/snapshot-dependencies/ /app/
 COPY --from=builder /builder/extracted/application/ /app/
 WORKDIR /data
-ENTRYPOINT ["java", "-cp", "/app", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
