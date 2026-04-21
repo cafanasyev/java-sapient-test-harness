@@ -38,6 +38,7 @@
             <thead>
                 <tr>
                     <th>Node ID</th>
+                    <th>Name</th>
                     <th>Status</th>
                     <th>Online</th>
                     <th>Registration</th>
@@ -50,6 +51,7 @@
                 <th:block th:fragment="rows">
                     <tr th:each="node : ${nodes}">
                         <td th:text="${node.nodeId}"></td>
+                        <td th:text="${node.label}"></td>
                         <td>
                             <span th:class="${node.online ? 'badge badge-online' : 'badge badge-offline'}"
                                   th:text="${node.online ? 'Online' : 'Offline'}"></span>

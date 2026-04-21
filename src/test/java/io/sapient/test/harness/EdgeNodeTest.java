@@ -159,6 +159,47 @@ class EdgeNodeTest {
     }
 
     @Test
+    void getLabel_returnsShortName_whenSet() {
+        Registration r =
+                Registration.newBuilder().setName("Full Name").setShortName("Short").build();
+        EdgeNode n = new EdgeNode(NODE_ID, r, STATUS_REPORT, true);
+        assertEquals("Short", n.getLabel());
+    }
+
+    @Test
+    void getLabel_fallsBackToName_whenShortNameMissing() {
+        Registration r = Registration.newBuilder().setName("Full Name").build();
+        EdgeNode n = new EdgeNode(NODE_ID, r, STATUS_REPORT, true);
+        assertEquals("Full Name", n.getLabel());
+    }
+
+    @Test
+    void getLabel_fallsBackToName_whenShortNameEmpty() {
+        Registration r = Registration.newBuilder().setName("Full Name").setShortName("").build();
+        EdgeNode n = new EdgeNode(NODE_ID, r, STATUS_REPORT, true);
+        assertEquals("Full Name", n.getLabel());
+    }
+
+    @Test
+    void getLabel_returnsEmpty_whenBothMissing() {
+        EdgeNode n = new EdgeNode(NODE_ID, Registration.getDefaultInstance(), STATUS_REPORT, true);
+        assertEquals("", n.getLabel());
+    }
+
+    @Test
+    void getLabel_returnsEmpty_whenNameEmpty() {
+        Registration r = Registration.newBuilder().setName("").build();
+        EdgeNode n = new EdgeNode(NODE_ID, r, STATUS_REPORT, true);
+        assertEquals("", n.getLabel());
+    }
+
+    @Test
+    void getLabel_returnsEmpty_whenRegistrationNull() {
+        EdgeNode n = new EdgeNode(NODE_ID, null, STATUS_REPORT, true);
+        assertEquals("", n.getLabel());
+    }
+
+    @Test
     void onRegistrationAck_doesNotThrow() {
         assertDoesNotThrow(() -> node.onRegistrationAck(RegistrationAck.getDefaultInstance()));
     }

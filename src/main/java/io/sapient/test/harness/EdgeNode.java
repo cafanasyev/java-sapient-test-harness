@@ -89,6 +89,14 @@ class EdgeNode implements INode {
         return registration.get() != null;
     }
 
+    public String getLabel() {
+        Registration r = registration.get();
+        if (r == null) return "";
+        if (r.hasShortName() && !r.getShortName().isEmpty()) return r.getShortName();
+        if (r.hasName() && !r.getName().isEmpty()) return r.getName();
+        return "";
+    }
+
     public boolean hasStatusReport() {
         return statusReport.get() != null;
     }
