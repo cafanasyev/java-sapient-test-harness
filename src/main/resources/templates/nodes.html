@@ -49,7 +49,7 @@
             </thead>
             <tbody id="nodes-body" hx-get="/nodes/rows" hx-trigger="load, every 5s" hx-swap="innerHTML">
                 <th:block th:fragment="rows">
-                    <tr th:each="node : ${nodes}">
+                    <tr th:each="row : ${rows}" th:with="node=${row.node}" th:class="${row.child} ? 'child' : ''">
                         <td th:text="${node.nodeId}"></td>
                         <td th:text="${node.label}"></td>
                         <td>

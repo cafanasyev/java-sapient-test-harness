@@ -95,6 +95,38 @@ tr:hover td { background: #fafafa; }
 .badge-disconnected { background: #fed7aa; color: #9a3412; }
 .badge-closed       { background: #f3f4f6; color: #6b7280; }
 
+tr:not(.child):has(+ tr.child) td:first-child,
+tr.child td:first-child { position: relative; }
+
+tr.child td:first-child::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    bottom: 0;
+    border-left: 2px solid #6366f1;
+}
+tr:not(.child):has(+ tr.child) td:first-child::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    bottom: 0;
+    border-left: 2px solid #6366f1;
+}
+tr.child:not(:has(+ tr.child)) td:first-child::before { bottom: 50%; }
+
+tr.child td:first-child::after {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    width: 1rem;
+    border-top: 2px solid #6366f1;
+}
+
+tr.child td:first-child { padding-left: 3rem; }
+
 .fusion-node-label {
     font-size: 0.85rem;
     font-weight: 500;
