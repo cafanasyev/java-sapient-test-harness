@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.cafanasyev</groupId>
 	<artifactId>java-sapient-test-harness</artifactId>
-	<version>0.2.2</version>
+	<version>0.2.3</version>
 	<name>java-sapient-test-harness</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -39,6 +39,23 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.codecentric</groupId>
+			<artifactId>spring-boot-admin-starter-server</artifactId>
+			<version>4.0.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.codecentric</groupId>
+			<artifactId>spring-boot-admin-starter-client</artifactId>
+			<version>4.0.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 
@@ -52,7 +69,7 @@
 		<dependency>
 			<groupId>io.github.cafanasyev</groupId>
 			<artifactId>java-sapient-sdk</artifactId>
-			<version>0.2.1</version>
+			<version>0.2.3</version>
 		</dependency>
 
 		<dependency>

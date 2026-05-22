@@ -1,5 +1,6 @@
 package io.sapient.test.harness;
 
+import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import io.sapient.transmission.INode;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
@@ -27,6 +29,7 @@ import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
  *     status_report.json
  * </pre>
  */
+@Slf4j
 @Component
 public class EdgeNodeLoader {
 
@@ -68,25 +71,38 @@ public class EdgeNodeLoader {
 
     private Registration parseRegistration(Path file) throws IOException {
         Registration.Builder builder = Registration.newBuilder();
-        JsonFormat.parser().merge(Files.readString(file), builder);
+        parseSapientMessage(file, builder);
         return builder.build();
     }
 
     private StatusReport parseStatusReport(Path file) throws IOException {
         StatusReport.Builder builder = StatusReport.newBuilder();
-        JsonFormat.parser().merge(Files.readString(file), builder);
+        parseSapientMessage(file, builder);
         return builder.build();
     }
 
     private Alert parseAlert(Path file) throws IOException {
         Alert.Builder builder = Alert.newBuilder();
-        JsonFormat.parser().merge(Files.readString(file), builder);
+        parseSapientMessage(file, builder);
         return builder.build();
     }
 
     private DetectionReport parseDetectionReport(Path file) throws IOException {
         DetectionReport.Builder builder = DetectionReport.newBuilder();
-        JsonFormat.parser().merge(Files.readString(file), builder);
+        parseSapientMessage(file, builder);
         return builder.build();
+    }
+
+    private void parseSapientMessage(Path file, Message.Builder builder) throws IOException {
+        try {
+            JsonFormat.parser().merge(Files.readString(file), builder);
+        } catch (IOException e) {
+            log.error(
+                    "Failed to load Sapient Message fixture '{}' from {}",
+                    file.getFileName(),
+                    file.toAbsolutePath(),
+                    e);
+            throw e;
+        }
     }
 }
