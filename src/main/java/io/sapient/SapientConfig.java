@@ -110,9 +110,9 @@ class SapientConfig {
     @Bean
     INodeDispatcher nodeDispatcher(IClient client) {
         UUID fusionNodeId = UUID.fromString(this.fusionNodeId);
-        NodeDispatcherConfig config = NodeDispatcherConfig.defaults(fusionNodeId);
         Duration connectionLossDetection = socketWatchdogInterval.plus(socketProbeTimeout);
-        config = config.withConnectionLossDetectionDelay(connectionLossDetection);
+        NodeDispatcherConfig config =
+                NodeDispatcherConfig.defaults(fusionNodeId, connectionLossDetection);
         return new NodeDispatcher(client, config);
     }
 }
