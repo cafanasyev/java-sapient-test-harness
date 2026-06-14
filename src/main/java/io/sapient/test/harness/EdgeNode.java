@@ -10,6 +10,7 @@ import lombok.Getter;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.AlertAck;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.Error;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.RegistrationAck;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
@@ -125,6 +126,9 @@ class EdgeNode implements INode {
 
     @Override
     public void onTask(Task task) {}
+
+    @Override
+    public void onError(Error error) {}
 
     private static StatusReport withReportId(StatusReport sr) {
         if (sr.hasReportId()) return sr;
