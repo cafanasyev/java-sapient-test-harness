@@ -6,7 +6,6 @@ Spring Boot test harness for [java-sapient-sdk](https://github.com/cafanasyev/ja
 
 - Java 21+
 - No local Maven installation required (Maven Wrapper included)
-- `java-sapient-sdk:0.2.3` must be installed in the local Maven repository (`~/.m2`) before building
 
 ## Build
 
@@ -126,13 +125,20 @@ edge-node.loader.base-dir=.
 fusion-node.host=localhost
 fusion-node.port=5000
 fusion-node.id=00000000-0000-0000-0000-000000000000
-
+fusion-node.socket.watchdog-interval=10s
+fusion-node.socket.probe-timeout=1s
 # Uncomment to enable TLS (tls/ directory required)
 # fusion-node.tls.enabled=true
 # fusion-node.tls.ca-cert=tls/ca.pem
 # fusion-node.tls.client-cert=tls/cert.pem
 # fusion-node.tls.client-key=tls/key.pem
-# fusion-node.tls.key-algorithm=RSA
+
+management.endpoints.web.exposure.include=*
+management.endpoint.health.show-details=always
+
+spring.boot.admin.context-path=/admin
+spring.boot.admin.client.url=http://localhost:8080/admin
+spring.boot.admin.client.instance.service-url=http://localhost:8080
 ```
 
 **`data/edge_nodes/{uuid}/registration.json`** and **`status_report.json`** — see [`src/test/resources/edge_nodes/`](src/test/resources/edge_nodes/) for example fixtures:
@@ -177,14 +183,6 @@ services:
 
 ```bash
 docker compose up
-```
-
-### Build and publish the image
-
-```bash
-./mvnw clean package -DskipTests
-docker build -t cafanasyev/java-sapient-test-harness:latest .
-docker push cafanasyev/java-sapient-test-harness:latest
 ```
 
 ## License
