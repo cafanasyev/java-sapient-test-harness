@@ -31,13 +31,13 @@ class SapientConfig {
     @Value("${fusion-node.id}")
     private String fusionNodeId;
 
-    @Value("${fusion-node.tls.ca-cert}")
+    @Value("${fusion-node.tls.ca-cert:}")
     private String caCertPath;
 
-    @Value("${fusion-node.tls.client-cert}")
+    @Value("${fusion-node.tls.client-cert:}")
     private String clientCertPath;
 
-    @Value("${fusion-node.tls.client-key}")
+    @Value("${fusion-node.tls.client-key:}")
     private String clientKeyPath;
 
     @Value("${fusion-node.socket.watchdog-interval}")
