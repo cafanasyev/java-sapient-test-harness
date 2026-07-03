@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
@@ -112,7 +113,7 @@ class FusionNodeStatusService {
     }
 
     static String connectionCssClass(ConnectionState state) {
-        return "badge badge-" + state.name().toLowerCase();
+        return "badge badge-" + state.name().toLowerCase(Locale.ROOT);
     }
 
     static String connectionLabel(ConnectionState state) {
