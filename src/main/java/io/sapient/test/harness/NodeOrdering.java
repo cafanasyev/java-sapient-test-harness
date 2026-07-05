@@ -41,6 +41,7 @@ final class NodeOrdering {
             try {
                 out.add(UUID.fromString(s));
             } catch (IllegalArgumentException ignored) {
+                // skip malformed dependent-node identifiers
             }
         }
         return out;

@@ -4,8 +4,8 @@ import io.sapient.transmission.INodeDispatcher;
 import io.sapient.transmission.NodeDispatcher;
 import io.sapient.transmission.NodeDispatcherConfig;
 import io.sapient.transport.IClient;
+import io.sapient.transport.ISocketProvider;
 import io.sapient.transport.SocketClient;
-import io.sapient.transport.SocketProvider;
 import io.sapient.transport.SslContextFactory;
 import java.io.IOException;
 import java.net.Socket;
@@ -51,12 +51,12 @@ class SapientConfig {
 
     @Bean
     @ConditionalOnProperty(name = "fusion-node.tls.enabled", havingValue = "true")
-    SocketProvider tlsSocketProvider() throws Exception {
+    ISocketProvider tlsSocketProvider() throws Exception {
         byte[] caCert = Files.readAllBytes(Paths.get(caCertPath));
         byte[] clientCert = Files.readAllBytes(Paths.get(clientCertPath));
         byte[] clientKey = Files.readAllBytes(Paths.get(clientKeyPath));
         SSLContext sslContext = new SslContextFactory().create(clientKey, clientCert, caCert);
-        return new SocketProvider() {
+        return new ISocketProvider() {
             @Override
             public Socket get() throws IOException {
                 return sslContext.getSocketFactory().createSocket(host, port);
@@ -79,8 +79,8 @@ class SapientConfig {
             name = "fusion-node.tls.enabled",
             havingValue = "false",
             matchIfMissing = true)
-    SocketProvider plainSocketProvider() {
-        return new SocketProvider() {
+    ISocketProvider plainSocketProvider() {
+        return new ISocketProvider() {
             @Override
             public Socket get() throws IOException {
                 return new Socket(host, port);
@@ -99,7 +99,7 @@ class SapientConfig {
     }
 
     @Bean
-    IClient socketClient(SocketProvider socketProvider) {
+    IClient socketClient(ISocketProvider socketProvider) {
         return new SocketClient(
                 socketProvider,
                 socketProbeTimeout,

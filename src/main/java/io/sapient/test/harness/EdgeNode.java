@@ -54,6 +54,7 @@ class EdgeNode implements INode {
         this.online = new AtomicBoolean(online);
     }
 
+    @Override
     public Registration getRegistration() {
         return registration.get();
     }
@@ -62,6 +63,7 @@ class EdgeNode implements INode {
         this.registration.set(registration);
     }
 
+    @Override
     public StatusReport getStatusReport() {
         return statusReport.updateAndGet(EdgeNode::withReportId);
     }
@@ -110,6 +112,7 @@ class EdgeNode implements INode {
         return detectionReport.get() != null;
     }
 
+    @Override
     public boolean isOnline() {
         return online.get();
     }
