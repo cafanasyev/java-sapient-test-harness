@@ -1,6 +1,5 @@
 package io.sapient.test.harness;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import io.sapient.transmission.INode;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,25 +62,28 @@ class EdgeNode implements INode {
         this.registration.set(registration);
     }
 
+    /** A missing {@code reportId} stays missing: the SDK gives every report a new one. */
     @Override
     public StatusReport getStatusReport() {
-        return statusReport.updateAndGet(EdgeNode::withReportId);
+        return statusReport.get();
     }
 
     void setStatusReport(StatusReport statusReport) {
         this.statusReport.set(statusReport);
     }
 
+    /** A missing {@code alertId} stays missing: the SDK gives every alert a new one. */
     public Optional<Alert> getAlert() {
-        return Optional.ofNullable(alert.updateAndGet(EdgeNode::withAlertId));
+        return Optional.ofNullable(alert.get());
     }
 
     void setAlert(Alert alert) {
         this.alert.set(alert);
     }
 
+    /** A missing {@code reportId} stays missing: the SDK gives every report a new one. */
     public Optional<DetectionReport> getDetectionReport() {
-        return Optional.ofNullable(detectionReport.updateAndGet(EdgeNode::withDetectionReportId));
+        return Optional.ofNullable(detectionReport.get());
     }
 
     void setDetectionReport(DetectionReport detectionReport) {
@@ -132,19 +134,4 @@ class EdgeNode implements INode {
 
     @Override
     public void onError(Error error) {}
-
-    private static StatusReport withReportId(StatusReport sr) {
-        if (sr.hasReportId()) return sr;
-        return sr.toBuilder().setReportId(UlidCreator.getMonotonicUlid().toString()).build();
-    }
-
-    private static Alert withAlertId(Alert a) {
-        if (a == null || a.hasAlertId()) return a;
-        return a.toBuilder().setAlertId(UlidCreator.getMonotonicUlid().toString()).build();
-    }
-
-    private static DetectionReport withDetectionReportId(DetectionReport dr) {
-        if (dr == null || dr.hasReportId()) return dr;
-        return dr.toBuilder().setReportId(UlidCreator.getMonotonicUlid().toString()).build();
-    }
 }

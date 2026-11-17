@@ -9,6 +9,9 @@ import static org.mockito.Mockito.verify;
 import io.sapient.transmission.INodeDispatcher;
 import io.sapient.transmission.NodeDispatcher;
 import io.sapient.transmission.NodeDispatcherConfig;
+import io.sapient.transport.IClient;
+import io.sapient.transport.ISocketProvider;
+import io.sapient.transport.health.HealthCheckType;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -56,14 +59,30 @@ class SapientConfigTest {
         verify(dispatcher).close();
     }
 
+    @Test
+    void socketClient_detectsConnectionLossWithConfiguredHealthCheck() throws Exception {
+        // 3 checks 30s apart must fail, and the last one may take its full 2s timeout
+        try (IClient client =
+                newConfig(UUID.randomUUID()).socketClient(mock(ISocketProvider.class))) {
+            assertEquals(Duration.ofSeconds(92), client.connectionLossDetectionDelay());
+        }
+    }
+
     private INodeDispatcher createDispatcher(UUID fusionNodeId) {
+        SapientConfig config = newConfig(fusionNodeId);
+        return config.nodeDispatcher(config.socketClient(config.plainSocketProvider()));
+    }
+
+    private static SapientConfig newConfig(UUID fusionNodeId) {
         SapientConfig config = new SapientConfig();
         ReflectionTestUtils.setField(config, "host", "localhost");
         ReflectionTestUtils.setField(config, "port", 9999);
         ReflectionTestUtils.setField(config, "fusionNodeId", fusionNodeId.toString());
-        ReflectionTestUtils.setField(config, "socketWatchdogInterval", Duration.ofSeconds(30));
-        ReflectionTestUtils.setField(config, "socketProbeTimeout", Duration.ofSeconds(2));
+        ReflectionTestUtils.setField(config, "healthCheckType", HealthCheckType.NETCAT);
+        ReflectionTestUtils.setField(config, "healthCheckInterval", Duration.ofSeconds(30));
+        ReflectionTestUtils.setField(config, "healthCheckTimeout", Duration.ofSeconds(2));
+        ReflectionTestUtils.setField(config, "healthCheckFailureThreshold", 3);
         ReflectionTestUtils.setField(config, "socketInitialReconnectDelay", Duration.ofSeconds(1));
-        return config.nodeDispatcher(config.socketClient(config.plainSocketProvider()));
+        return config;
     }
 }

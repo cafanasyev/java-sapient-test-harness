@@ -7,6 +7,8 @@ import io.sapient.transport.IClient;
 import io.sapient.transport.ISocketProvider;
 import io.sapient.transport.SocketClient;
 import io.sapient.transport.SslContextFactory;
+import io.sapient.transport.health.HealthCheckConfig;
+import io.sapient.transport.health.HealthCheckType;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -40,11 +42,17 @@ class SapientConfig {
     @Value("${fusion-node.tls.client-key:}")
     private String clientKeyPath;
 
-    @Value("${fusion-node.socket.watchdog-interval}")
-    private Duration socketWatchdogInterval;
+    @Value("${fusion-node.health-check.type}")
+    private HealthCheckType healthCheckType;
 
-    @Value("${fusion-node.socket.probe-timeout}")
-    private Duration socketProbeTimeout;
+    @Value("${fusion-node.health-check.interval}")
+    private Duration healthCheckInterval;
+
+    @Value("${fusion-node.health-check.timeout}")
+    private Duration healthCheckTimeout;
+
+    @Value("${fusion-node.health-check.failure-threshold}")
+    private int healthCheckFailureThreshold;
 
     @Value("${fusion-node.socket.initial-reconnect-delay:1s}")
     private Duration socketInitialReconnectDelay;
@@ -100,19 +108,19 @@ class SapientConfig {
 
     @Bean
     IClient socketClient(ISocketProvider socketProvider) {
-        return new SocketClient(
-                socketProvider,
-                socketProbeTimeout,
-                socketInitialReconnectDelay,
-                socketWatchdogInterval);
+        HealthCheckConfig healthCheck =
+                new HealthCheckConfig(
+                        healthCheckType,
+                        healthCheckInterval,
+                        healthCheckTimeout,
+                        healthCheckFailureThreshold);
+        return new SocketClient(socketProvider, healthCheck, socketInitialReconnectDelay);
     }
 
     @Bean
     INodeDispatcher nodeDispatcher(IClient client) {
         UUID fusionNodeId = UUID.fromString(this.fusionNodeId);
-        Duration connectionLossDetection = socketWatchdogInterval.plus(socketProbeTimeout);
-        NodeDispatcherConfig config =
-                NodeDispatcherConfig.defaults(fusionNodeId, connectionLossDetection);
-        return new NodeDispatcher(client, config);
+        // the dispatcher reads the connection-loss detection delay from the client itself
+        return new NodeDispatcher(client, NodeDispatcherConfig.defaults(fusionNodeId));
     }
 }

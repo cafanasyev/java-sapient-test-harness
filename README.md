@@ -125,8 +125,11 @@ edge-node.loader.base-dir=.
 fusion-node.host=localhost
 fusion-node.port=5000
 fusion-node.id=00000000-0000-0000-0000-000000000000
-fusion-node.socket.watchdog-interval=10s
-fusion-node.socket.probe-timeout=1s
+# NETCAT, ICMP, ECHO or PINGPONG
+fusion-node.health-check.type=NETCAT
+fusion-node.health-check.interval=10s
+fusion-node.health-check.timeout=2s
+fusion-node.health-check.failure-threshold=3
 # Uncomment to enable TLS (tls/ directory required)
 # fusion-node.tls.enabled=true
 # fusion-node.tls.ca-cert=tls/ca.pem
@@ -140,6 +143,8 @@ spring.boot.admin.context-path=/admin
 spring.boot.admin.client.url=http://localhost:8080/admin
 spring.boot.admin.client.instance.service-url=http://localhost:8080
 ```
+
+**Upgrading from 0.3.1.** `fusion-node.socket.watchdog-interval` and `fusion-node.socket.probe-timeout` are gone, and the harness ignores them. Use `fusion-node.health-check.interval` and `fusion-node.health-check.timeout` instead. The old watchdog dropped the connection after the first failed check. Now `fusion-node.health-check.failure-threshold` checks in a row must fail, 3 by default. With the defaults, a dead connection is noticed within 32 seconds: `failure-threshold × interval + timeout`. `ECHO` and `PINGPONG` work only when the fusion node runs the same keepalive type.
 
 **`data/edge_nodes/{uuid}/registration.json`** and **`status_report.json`** — see [`src/test/resources/edge_nodes/`](src/test/resources/edge_nodes/) for example fixtures:
 
@@ -160,12 +165,12 @@ spring.boot.admin.client.instance.service-url=http://localhost:8080
 `status_report.json`:
 ```json
 {
-  "reportId": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
   "system": "SYSTEM_OK",
-  "info": "INFO_NEW",
   "mode": "default"
 }
 ```
+
+Leave `reportId` out of `status_report.json` and `detection_report.json`, and `alertId` out of `alert.json`. The SDK gives every message a new ULID, while an id written in the file goes out unchanged with every send. Write `alertId` into `alert.json` only to send the same alert again, for example with `"status": "ALERT_STATUS_CLEAR"`. Leave `info` out of `status_report.json` as well: the SDK sets it to `INFO_NEW` or `INFO_UNCHANGED` by comparing the report with the previous one.
 
 The `tls/` directory is only needed when TLS is enabled in `application.properties`.
 
