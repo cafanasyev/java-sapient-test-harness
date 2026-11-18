@@ -3,17 +3,30 @@ package io.sapient.test.harness;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import io.sapient.transmission.INodeDispatcher;
+import io.sapient.transmission.NodeDispatcher;
+import io.sapient.transmission.NodeDispatcherConfig;
+import io.sapient.transport.IClient;
+import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.ArgumentCaptor;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Alert;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.AlertAck;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.DetectionReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Registration;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.RegistrationAck;
+import uk.gov.dstl.sapientmsg.bsiflex335v2.SapientMessage;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.StatusReport;
 import uk.gov.dstl.sapientmsg.bsiflex335v2.Task;
 
@@ -21,6 +34,7 @@ import uk.gov.dstl.sapientmsg.bsiflex335v2.Task;
 class EdgeNodeTest {
 
     private static final UUID NODE_ID = UUID.randomUUID();
+    private static final Duration TIMEOUT = Duration.ofSeconds(1);
     private static final Registration REGISTRATION =
             Registration.newBuilder().setIcdVersion("BSI Flex 335 v2.0").build();
     private static final StatusReport STATUS_REPORT =
@@ -52,13 +66,14 @@ class EdgeNodeTest {
     }
 
     @Test
-    void getStatusReport_populatesUlidReportId_whenAbsent() {
+    void statusReport_getsNewReportIdOnEverySend() throws Exception {
         EdgeNode fresh =
-                new EdgeNode(NODE_ID, REGISTRATION, StatusReport.getDefaultInstance(), true);
-        StatusReport sr = fresh.getStatusReport();
-        assertTrue(sr.hasReportId());
-        assertEquals(26, sr.getReportId().length());
-        assertEquals(sr.getReportId(), fresh.getStatusReport().getReportId());
+                new EdgeNode(NODE_ID, REGISTRATION, StatusReport.getDefaultInstance(), false);
+        List<SapientMessage> sent =
+                sendTwice(fresh, d -> d.publish(fresh.getStatusReport(), NODE_ID, TIMEOUT));
+        assertNotEquals(
+                sent.get(0).getStatusReport().getReportId(),
+                sent.get(1).getStatusReport().getReportId());
     }
 
     @Test
@@ -106,12 +121,11 @@ class EdgeNodeTest {
     }
 
     @Test
-    void getAlert_populatesUlidAlertId_whenAbsent() {
+    void alert_getsNewAlertIdOnEverySend() throws Exception {
         node.setAlert(Alert.newBuilder().setAlertType(Alert.AlertType.ALERT_TYPE_WARNING).build());
-        Alert a = node.getAlert().orElseThrow();
-        assertTrue(a.hasAlertId());
-        assertEquals(26, a.getAlertId().length());
-        assertEquals(a.getAlertId(), node.getAlert().orElseThrow().getAlertId());
+        List<SapientMessage> sent =
+                sendTwice(node, d -> d.publish(node.getAlert().orElseThrow(), NODE_ID, TIMEOUT));
+        assertNotEquals(sent.get(0).getAlert().getAlertId(), sent.get(1).getAlert().getAlertId());
     }
 
     @Test
@@ -142,12 +156,15 @@ class EdgeNodeTest {
     }
 
     @Test
-    void getDetectionReport_populatesUlidReportId_whenAbsent() {
+    void detectionReport_getsNewReportIdOnEverySend() throws Exception {
         node.setDetectionReport(DetectionReport.newBuilder().setObjectId("obj-1").build());
-        DetectionReport dr = node.getDetectionReport().orElseThrow();
-        assertTrue(dr.hasReportId());
-        assertEquals(26, dr.getReportId().length());
-        assertEquals(dr.getReportId(), node.getDetectionReport().orElseThrow().getReportId());
+        List<SapientMessage> sent =
+                sendTwice(
+                        node,
+                        d -> d.publish(node.getDetectionReport().orElseThrow(), NODE_ID, TIMEOUT));
+        assertNotEquals(
+                sent.get(0).getDetectionReport().getReportId(),
+                sent.get(1).getDetectionReport().getReportId());
     }
 
     @Test
@@ -212,5 +229,24 @@ class EdgeNodeTest {
     @Test
     void onTask_doesNotThrow() {
         assertDoesNotThrow(() -> node.onTask(Task.getDefaultInstance()));
+    }
+
+    @FunctionalInterface
+    private interface Send {
+        void to(INodeDispatcher dispatcher) throws Exception;
+    }
+
+    /** Sends twice through a real dispatcher and returns the two messages the client got. */
+    private static List<SapientMessage> sendTwice(EdgeNode node, Send send) throws Exception {
+        IClient client = mock(IClient.class);
+        try (NodeDispatcher dispatcher =
+                new NodeDispatcher(client, NodeDispatcherConfig.defaults(UUID.randomUUID()))) {
+            dispatcher.register(node);
+            send.to(dispatcher);
+            send.to(dispatcher);
+            ArgumentCaptor<SapientMessage> sent = ArgumentCaptor.forClass(SapientMessage.class);
+            verify(client, times(2)).publish(sent.capture(), any());
+            return sent.getAllValues();
+        }
     }
 }
